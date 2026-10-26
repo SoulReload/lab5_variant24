@@ -145,6 +145,19 @@
     font-size: .9rem;
 }
 
+.create-post-page .form-field .input-error {
+    border-color: #c62828;
+    background: #fffafa;
+    box-shadow: 0 0 0 3px rgba(198, 40, 40, .09);
+}
+
+.create-post-page .field-error {
+    margin: 9px 2px 0;
+    color: #a51e1e;
+    font-size: .96rem;
+    font-weight: 700;
+}
+
 .create-post-page .form-error {
     margin: 0 0 24px;
     padding: 16px 18px;

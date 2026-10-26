@@ -38,16 +38,24 @@ def create_post(request):
     if not request.user.is_authenticated:
         raise Http404
 
-    initial_form = {"title": "", "text": ""}
+    initial_form = {"title": "", "text": "", "errors": "", "field_errors": {}}
     if request.method != "POST":
         return render(request, "create_post.html", {"form": initial_form})
 
     title = request.POST.get("title", "").strip()
     text = request.POST.get("text", "").strip()
-    form = {"title": title, "text": text}
+    form = {"title": title, "text": text, "errors": "", "field_errors": {}}
 
-    if not title or not text:
-        form["errors"] = "Заполните название и текст статьи."
+    # Проверяем все обязательные поля за один проход и показываем сообщение
+    # рядом с каждым полем, которое осталось незаполненным.
+    if not title:
+        form["field_errors"]["title"] = "Введите название статьи."
+    if not text:
+        form["field_errors"]["text"] = "Введите текст статьи."
+    if form["field_errors"]:
+        form["errors"] = "Проверьте обязательные поля, отмеченные сообщениями об ошибках."
+        if not title and not text:
+            form["errors"] = "Заполните название и текст статьи."
         return render(request, "create_post.html", {"form": form})
 
     # SQLite's built-in case-insensitive comparison does not reliably handle
@@ -59,9 +67,9 @@ def create_post(request):
         for existing_title in existing_titles
     )
     if title_exists:
-        form["errors"] = (
-            "Статья с таким названием уже существует. Выберите другое название."
-        )
+        message = "Статья с таким названием уже существует. Выберите другое название."
+        form["errors"] = message
+        form["field_errors"]["title"] = message
         return render(request, "create_post.html", {"form": form})
 
     post = Article.objects.create(

@@ -133,15 +133,50 @@ class CreatePostTests(TestCase):
         self.assertEqual(article.text, "Прибыль увеличилась.")
         self.assertRedirects(response, reverse("get_article", args=[article.id]))
 
-    def test_empty_fields_return_form_with_error_and_preserve_input(self):
+    def test_missing_text_returns_form_with_error_and_preserves_input(self):
         self.client.force_login(self.user)
         response = self.client.post(
             reverse("create_post"),
             {"title": "Черновик без текста", "text": "   "},
         )
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Заполните название и текст статьи.")
+        self.assertContains(response, "Проверьте обязательные поля")
+        self.assertContains(response, "Введите текст статьи.")
+        self.assertNotContains(response, "Введите название статьи.")
         self.assertContains(response, "Черновик без текста")
+        self.assertEqual(Article.objects.count(), 1)
+
+    def test_both_empty_fields_show_individual_errors(self):
+        self.client.force_login(self.user)
+        response = self.client.post(
+            reverse("create_post"), {"title": "   ", "text": "   "}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Введите название статьи.")
+        self.assertContains(response, "Введите текст статьи.")
+        self.assertContains(response, 'aria-invalid="true"', count=2)
+        self.assertEqual(Article.objects.count(), 1)
+
+    def test_missing_title_shows_error_next_to_title_field(self):
+        self.client.force_login(self.user)
+        response = self.client.post(
+            reverse("create_post"),
+            {"title": "   ", "text": "Текст финансовой аналитической статьи."},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Введите название статьи.")
+        self.assertNotContains(response, "Введите текст статьи.")
+        self.assertEqual(Article.objects.count(), 1)
+
+    def test_missing_text_shows_error_next_to_text_field(self):
+        self.client.force_login(self.user)
+        response = self.client.post(
+            reverse("create_post"),
+            {"title": "Черновик без текста", "text": "   "},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Введите текст статьи.")
+        self.assertNotContains(response, "Введите название статьи.")
         self.assertEqual(Article.objects.count(), 1)
 
     def test_duplicate_title_is_rejected_case_insensitively(self):

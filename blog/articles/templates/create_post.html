@@ -27,19 +27,27 @@
                 <p class="form-intro">Заполните название и текст. Автор будет указан автоматически по вашей учётной записи.</p>
             </div>
 
-            <form class="create-post-form" method="POST" action="{% url 'create_post' %}">
+            <form class="create-post-form" method="POST" action="{% url 'create_post' %}" novalidate>
                 {% csrf_token %}
                 <div class="form-field">
                     <label for="id_title">Название статьи <span class="required-mark">*</span></label>
                     <input id="id_title" type="text" name="title" maxlength="200"
                            placeholder="Например, Динамика выручки за отчётный период"
-                           value="{{ form.title|default:'' }}" required autocomplete="off">
+                           value="{{ form.title|default:'' }}" required autocomplete="off"
+                           {% if form.field_errors.title %}class="input-error" aria-invalid="true" aria-describedby="id_title_error"{% endif %}>
+                    {% if form.field_errors.title %}
+                        <p class="field-error" id="id_title_error">{{ form.field_errors.title }}</p>
+                    {% endif %}
                     <p class="field-hint">До 200 символов. Название должно быть уникальным.</p>
                 </div>
                 <div class="form-field">
                     <label for="id_text">Текст статьи <span class="required-mark">*</span></label>
                     <textarea id="id_text" name="text" rows="16"
-                              placeholder="Напишите аналитическую заметку: опишите показатели, изменения за отчётные периоды и выводы..." required>{{ form.text|default:'' }}</textarea>
+                              placeholder="Напишите аналитическую заметку: опишите показатели, изменения за отчётные периоды и выводы..." required
+                              {% if form.field_errors.text %}class="input-error" aria-invalid="true" aria-describedby="id_text_error"{% endif %}>{{ form.text|default:'' }}</textarea>
+                    {% if form.field_errors.text %}
+                        <p class="field-error" id="id_text_error">{{ form.field_errors.text }}</p>
+                    {% endif %}
                     <p class="field-hint">Добавьте достаточно подробный текст, чтобы статья была полезна читателю.</p>
                 </div>
                 {% if form.errors %}
